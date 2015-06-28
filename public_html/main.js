@@ -111,6 +111,26 @@ var app = {
         $("#entrylink", this).attr("href", entry.link);    
     },
     
+    // add feed click
+    onAddFeedClic: function(e) {
+        console.log("add feed click !");
+        handleAddFeed();
+        //return false;
+    },
+
+    // set current feed in #intropage
+    onFeedClick: function(e) {
+        localStorage["currentFeed"] = getPositionInActionsList(e);
+    },
+
+    // set cuurent entry and url in #intropage
+    onEntryClick: function(e) {
+        var entry = getPositionInActionsList(e);
+        console.log("onEntryClick entry index: " + entry);
+    
+        localStorage["currentEntry"] = entry;
+    },
+    
     // apps methods
     //
     
@@ -130,18 +150,49 @@ var app = {
             $("#feedList").html(s);
             $("#feedList").listview("refresh");
         }
-    }
+    },
     
-    // Update DOM on a Received Event
-    receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
+    // display an feed
+    displayFeed: function(url) { // UPDATE
+        var entries = feedCache[url];
+        var s = "<ul data-role='listview' data-inset='true' id='entrylist'>";
+        for (var i = 0; i < entries.length; i++) {
+            var entry = entries[i];
+            s += "<li><a href='#entrypage' onclick='onEntryClick(this)'>" + entry.title + "</a></li>";
+        }
+        s += "</ul>";
+        //s += "<a href='#intropage' data-role='button' data-theme='b'>Cancel</a>";
+        $("#feedcontents").html(s);
+        $("#entrylist").listview();
+    },
 
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
+    // handle add feed
+    handleAddFeed: function() {
+        console.log("add feed !");
+        var feedname = $.trim($("#feedname").val());
+        console.log("feedname: " + feedname);
+        var feedurl = $.trim($("#feedurl").val());
+        console.log("feedurl: " + feedurl);
+    
+        // basic error handling
+        var errors = "";
+        if (feedname == "")
+            errors += "Feed name is required.\n";
+        if (feedurl == "")
+            errors += "Feed url is required.\n";
+        if (errors != "") {
+            //Create a PhoneGap notification for the error
+            navigator.notification.alert(errors, function () {});
+        } else {
+            addFeed(feedname, feedurl);
+            $.mobile.changePage($("#intropage"));
+            //$.mobile.changePage($("index.html"));
+        }
+    },
 
-        console.log('Received Event: ' + id);
+    // handle delete feed in feed list
+    handleDelFeed: function(e) {
+        removeFeed(getPositionInActionsList(e));
     }
 };
 
